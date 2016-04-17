@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SmartCans | Admin Panel</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        .logoFix {
+            display: inline-block !important;
+            margin-right: 1.5em !important;
+            vertical-align: middle;
+        }
+
+        *:focus {
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ui fixed menu">
+
+        <a href="#" class="item">
+            <img class="logo logoFix" style="width:30px;" src="images/recycle_view.jpg">
+            Admin Panel
+        </a>
+        <a id="AddNewCanButton" href="#" class="item"><i class="add icon"></i>Add Can</a>
+        <a id="#FleetButton" href="fleet.html" class="item"><i class="truck icon"></i>Fleet</a>
+
+        <div class="right menu">
+            <div class="item" href="login.html">
+                <img class="ui avatar image" src="/images/petar.jpg">
+                <span> Petar Čučuk</span>
+            </div>
+            <a class="item" href="login.html">
+                Sign Out
+            </a>
+        </div>
+
+
+    </div>
+
+    <div id="map"></div>
+
+    <div id="viewButton" class="ui compact menu" style="position:absolute; right:47px; bottom:24px;">
+        <a id="recButton" class="item">
+            <i class="recycle icon"></i>
+            Type View
+        </a>
+        <a id="capButton" class="item active">
+            <i class="trash icon"></i>
+            Capacity View
+        </a>
+    </div>
+
+    <div id="AddNewCanModal" class="ui modal">
+        <i class="close icon"></i>
+        <div class="header">
+            Add New Can
+        </div>
+
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select id="type" name="type" class="ui fluid dropdown">
+                        <option value="GLASS">Glass</option>
+                        <option value="PLASTIC">Plastic</option>
+                        <option value="PAPER">Paper</option>
+                        <option value="GARBAGE">Garbage</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Latitude</label>
+                    <input id="latitude" type="text" name="latitude" placeholder="Latitude">
+                </div>
+                <div class="field">
+                    <label>Longitude</label>
+                    <input id="longitude" type="text" name="longitude" placeholder="Longitude">
+                </div>
+                <div class="field">
+                    <label>Address</label>
+                    <input id="address" type="text" name="address" placeholder="Address">
+                </div>
+            </form>
+        </div>
+
+        <div class="actions">
+            <div class="ui black button">
+                Cancel
+            </div>
+            <div class="ui positive right labeled icon button" id="PostCanButton">
+                Create
+                <i class="add icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.js"></script>
+
+
+    <script>
+        var map;
+        var markers = new Array();
+        var infoboxes = new Array();
+        var baseUrl = "http://dubrovniksmartcan-bracketscan.rhcloud.com";
+
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 42.657215, lng: 18.088554 },
+                zoom: 14
+            });
+            updateMap();
+
+            google.maps.event.addListener(map, "rightclick", function (event) {
+                var lat = event.latLng.lat();
+                var lng = event.latLng.lng();
+
+                $("#latitude").val(lat);
+                $("#longitude").val(lng);
+
+                $('#AddNewCanModal').modal('show');
+            });
+
+            google.maps.event.addListener(map, "click", function (event) {
+                for (var i = 0; i < infoboxes.length; i++) {
+                    infoboxes[i].close();
+                }
+            });
+        }
+
+        function updateMap() {
+            $.get(baseUrl + "/cans", function (data) {
+                data.forEach(function (can) {
+                    addMarker(can);
+                });
+                console.log("Got cans");
+            }).fail(function () {
+                console.log("error loading cans");
+            });
+        }
+
+        function deleteItem(id) {
+            console.log("Delete Id: " + id);
+
+            $.ajax({
+                method: "DELETE",
+                url: "http://dubrovniksmartcan-bracketscan.rhcloud.com/cans/" + id
+            })
+              .done(function (obj) {
+                  console.log("Deleted Id: " + obj.id);
+                  hideMarker(obj.id);
+              });
+        }
+
+        function removeAllMarkers() {
+            if (markers) {
+                for (var i = 0; i < markers.length; i++) {
+                    markers[i].setMap(null);
+                }
+            }
+        }
+
+        function hideMarker(id) {
+            if (markers) {
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].title == id) {
+                        markers[i].setMap(null);
+                    }
+                }
+            }
+        }
+
+        function addMarker(c) { // c== object koji smo dobili
+            var contentString =
+                       `<div>
+                         <p><b>Capacity: </b> <span id="capacitySpan">`+ c.capacity + `</span>%</p>
+                         <p><b>Type: </b> <span id="typeSpan">`+ c.type + `</span></p>
+                         <p><b>Location :</b> <span id="locationSpan">`+ c.latitude + ", " + c.longitude + `</span></p>
+
+                         <button class ="ui tiny button" onclick= "deleteItem(`+ c.id + `)" >Delete</button>
+                    </div>`;
+
+            var infowindow = new google.maps.InfoWindow({
+                content: contentString,
+                maxWidth: 500
+            });
+
+            infoboxes.push(infowindow);
+            var markerIcon = window.location.protocol + "//" + window.location.hostname + "/images/marker.png";
+            console.log(markerIcon);
+            var marker = new google.maps.Marker({
+                position: { lat: c.latitude, lng: c.longitude },
+                map: map,
+                title: c.id + "",
+                icon: markerIcon
+            });
+            console.log(markerIcon);
+            markers.push(marker);
+
+            marker.addListener('click', function () {
+                infowindow.open(map, marker);
+            });
+
+        }
+
+        $(document).ready(function () {
+
+            $("#AddNewCanButton").click(function () {
+                $('#AddNewCanModal').modal('show');
+            });
+
+            $("#PostCanButton").click(function () {
+                var can = {
+                    id: -1,
+                    capacity: "50",
+                    type: $("#type").val().toUpperCase(),
+                    latitude: parseFloat($("#latitude").val()),
+                    longitude: parseFloat($("#longitude").val()),
+                    address: $("#address").val()
+                };
+
+                var json = JSON.stringify(can);
+
+                $.ajax({
+                    method: "PUT",
+                    contentType: "application/json",
+                    url: "http://dubrovniksmartcan-bracketscan.rhcloud.com/addCan",
+                    data: json
+                })
+                  .done(function (obj) {
+                      console.log("Data Saved: " + obj);
+                      addMarker(obj);
+                  });
+            });
+            $("#viewButton").children().click(function () {
+                $(".active").not($(this).toggleClass("active")).removeClass("active");
+
+                //newIconMarker1 = window.location.protocol + "//" + window.location.hostname + "/images/logo.png";
+                //newIconMarker2 = window.location.protocol + "//" + window.location.hostname + "/images/marker.png";
+                /* if($(this).hasClass("active")){
+                     this.setIcon(window.location.protocol + "//" + window.location.hostname + "/images/logo.png");
+             }
+                 else
+         {
+                     this.setIcon(window.location.protocol + "//" + window.location.hostname + "/images/marker.png");
+         }*/
+
+            });
+
+        });
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+</body>
+
+</html>

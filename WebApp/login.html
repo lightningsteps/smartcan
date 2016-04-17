@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0042)http://semantic-ui.com/examples/login.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!-- Standard Meta -->
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <!-- Site Properties -->
+  <title>Smart Can | Admin Panel</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/1.11.8/semantic.min.js"></script>
+
+  <style type="text/css">
+    body { 
+      background: url(images/bg.jpg) no-repeat center center fixed; 
+      background-size: cover;
+      overflow:hidden;
+    }
+    body > .grid {
+      height: 100%;
+    }
+    .image {
+      margin-top: -100px;
+    }
+    .column {
+      max-width: 450px;
+    }
+      ..ui.teal.button, .ui.teal.buttons .button {
+          background-color:red !important;
+      }
+  </style>
+</head>
+<body>
+
+<div class="ui middle aligned center aligned grid">
+  <div class="column" style="margin-top:150px">
+    <h2 class="ui inverted image header">
+      <img src="images/logo.png" class="image">
+      <div class="content">
+        SmartCan Admin
+      </div>
+    </h2>
+    <form class="ui large form">
+      <div class="ui stacked segment">
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input type="text" name="email" placeholder="E-mail address">
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="password" placeholder="Password">
+          </div>
+        </div>
+        <div class="ui fluid large teal button" onclick="window.location ='index.html'">Login</div>
+      </div>
+
+      <div class="ui error message"></div>
+
+    </form>
+  </div>
+</div>
+
+
+
+
+</body></html>

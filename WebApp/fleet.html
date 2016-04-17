@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SmartCans | Admin Panel</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        .logoFix {
+            display: inline-block !important;
+            margin-right: 1.5em !important;
+            vertical-align: middle;
+        }
+
+        *:focus {
+            outline: none;
+        }
+
+        .adp-marker {
+            margin:6px 10px 2px 10px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ui fixed menu">
+
+        <a href="#" class="item">
+            <img class="logo logoFix" style="width:30px;" src="images/marker.png"> Admin Panel
+        </a>
+
+        <a id="#FleetButton" href="/index.html" class="item"><i class="angle left icon"></i>Back To Map</a>
+
+        <div class="right menu">
+            <div class="item" href="login.html">
+                <img class="ui avatar image" src="/images/petar.jpg">
+                <span> Petar Čučuk</span>
+            </div>
+            <a class="item" href="login.html">
+                Sign Out
+            </a>
+        </div>
+
+        <div class="ui vertical menu" style="position:absolute; left:20px; top:90px">
+            <a class="item">
+                Truck 101
+                <i class="truck icon"></i>
+            </a>
+            <a class="item">
+                Truck 102
+                <i class="truck icon"></i>
+            </a>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    
+    <div class="ui vertical menu" style="position:absolute; right:20px; top:78px; width:400px !important;">
+        <div id="truck1" style="max-width:500px; overflow:auto; max-height:400px; padding:10px"></div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.js"></script>
+
+    <script type="text/javascript" src="//www.google.fr/jsapi"></script>
+    <script type="text/javascript">
+        google.load("maps", "3.4", {
+            other_params: "sensor=false&language=en"
+        });
+    </script>
+    <script type="text/javascript" src="js/jquery.googlemap.js"></script>
+
+    <script>
+        $(function () {
+
+            var baseUrl = "http://dubrovniksmartcan-bracketscan.rhcloud.com";
+
+            $.get(baseUrl + "/cans", function (data) {
+
+                var truck1 = [];
+                var truck2 = [];
+
+                var splitLong = 18.085301;
+
+                data.forEach(function (can) {
+
+                    if(can.id > 10)
+                    {
+                        return;
+                    }
+
+                    if (can.longitude < splitLong) {
+                       
+                        truck1.push([parseFloat(can.latitude), parseFloat(can.longitude)]);
+                    }
+                    else {
+                        truck2.push([parseFloat(can.latitude), parseFloat(can.longitude)]);
+                    }
+                });
+
+                truck1.forEach(function (t) {
+                        console.log("truck1: " + t);
+                });
+
+                console.log("*************************************");
+
+                truck2.forEach(function (t) {
+                    console.log("truck2: " + t);
+                });
+
+                $("#map").addWay({
+                    start: { lat: 42.647786, lng: 18.094729 }, // Postal address for the start marker (obligatory)
+                    end: [42.647786, 18.094728], // Postal Address or GPS coordinates for the end marker (obligatory)
+                    route: 'truck1', // Block's ID for the route display (optional)
+                    langage: 'english', // language of the route detail (optional)
+                    step: truck1
+                });
+
+                $("#map").addWay({
+                    start: { lat: 42.647786, lng: 18.094729 }, // Postal address for the start marker (obligatory)
+                    end: [42.647786, 18.094728], // Postal Address or GPS coordinates for the end marker (obligatory)
+                    route: 'way', // Block's ID for the route display (optional)
+                    langage: 'english', // language of the route detail (optional)
+                    step: truck2
+                });
+
+            }).fail(function () {
+                console.log("error loading cans");
+            });
+
+            $("#map").googleMap({
+                zoom: 14, // Initial zoom level (optional)
+                coords: [42.647786, 18.094729], // Map center (optional)
+                type: "ROADMAP" // Map type (optional)
+            });
+
+
+        });
+    </script>
+    <!--<script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>-->
+</body>
+
+</html>
